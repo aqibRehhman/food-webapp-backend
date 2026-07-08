@@ -16,7 +16,6 @@ const usersSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Password is required'],
         trim: true,
-        select: false
     },
     address: {
         type: String,
