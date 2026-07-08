@@ -35,7 +35,7 @@ const login = async (req, res) => {
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
-                message: "Incomplete Data"
+                message: "Bad Request"
             })
         }
         const user = await usersSchema.findOne({ email });
