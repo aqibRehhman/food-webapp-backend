@@ -13,7 +13,13 @@ const signup = async (req, res) => {
                 message: "Incomplete Data"
             })
         }
-
+        const isEmailExist = await usersSchema.findOne({ email });
+        if (isEmailExist) {
+            return res.status(409).json({
+                success: false,
+                message: "Email already exist",
+            });
+        }
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
         const createdUser = await usersSchema.create({ ...req.body, password: hashedPassword });
         const user = await usersSchema.findById(createdUser._id);
@@ -69,4 +75,35 @@ const login = async (req, res) => {
     }
 }
 
-module.exports = { signup, login };
+const allUsers = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Bad Request"
+            })
+        } if (process.env.ADMIN_EMAIL !== email || process.env.ADMIN_PASS !== password) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid admin credentials"
+            })
+        }
+        const users = await usersSchema.find().select('-password');
+        if (!users) {
+            return res.status(404).json({
+                success: false,
+                message: "Users not found"
+            })
+        }
+        return res.status(200).json({ message: 'Successfull', users });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: err
+        });
+    }
+}
+
+module.exports = { signup, login, allUsers };
