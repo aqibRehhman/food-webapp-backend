@@ -98,4 +98,46 @@ const resetPassword = async (req, res) => {
     }
 };
 
-module.exports = { getUsers, editUsers, resetPassword };
+const updatePassword = async (req, res) => {
+    try {
+        let user = await usersSchema.findById(req.id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const { oldPassword, newPassword } = req.body;
+
+        if (!newPassword || !oldPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Incomplete Data"
+            })
+        }
+        const isMatch = await bcrypt.compare(oldPassword, user?.password);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid Old Password"
+            })
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+        return res.status(200).json({
+            success: true,
+            message: "Password updated successfully",
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+};
+
+module.exports = { getUsers, editUsers, resetPassword, updatePassword };
