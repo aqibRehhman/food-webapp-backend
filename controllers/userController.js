@@ -59,6 +59,26 @@ const editUsers = async (req, res) => {
     }
 };
 
+const deleteUser = async (req, res) => {
+    try {
+        const { id } = req?.params || req?.id;
+        const deletedUser = await usersSchema.findByIdAndDelete(id).select("-password");
+        if (!deletedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({
+            message: "User deleted successfully",
+            deletedUser,
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+};
+
 const resetPassword = async (req, res) => {
     try {
         const { email, newPassword, answer } = req.body;
@@ -140,4 +160,4 @@ const updatePassword = async (req, res) => {
     }
 };
 
-module.exports = { getUsers, editUsers, resetPassword, updatePassword };
+module.exports = { getUsers, editUsers, resetPassword, updatePassword, deleteUser };
